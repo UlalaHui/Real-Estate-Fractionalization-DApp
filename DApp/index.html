@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropertyFraction - Real Estate Fractionization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.10.0/web3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .wallet-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .wallet-info {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .image-upload {
+            border: 2px dashed #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+        }
+
+        .image-upload:hover {
+            border-color: #667eea;
+        }
+
+        .image-upload.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 5px;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .property-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .property-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .property-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .property-image.no-image {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .property-content {
+            padding: 20px;
+        }
+
+        .property-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .property-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .stat {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.verified {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .status.pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: #d97706;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .buy-section {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .buy-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .buy-controls input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        .transaction-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .transaction-type {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .transaction-type.purchase {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .transaction-type.transfer {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .transaction-type.income {
+            background: rgba(168, 85, 247, 0.1);
+            color: #9333ea;
+        }
+
+        .transaction-type.claim {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .transaction-type.create {
+            background: rgba(236, 72, 153, 0.1);
+            color: #db2777;
+        }
+
+        .transaction-type.transaction {
+            background: rgba(156, 163, 175, 0.1);
+            color: #6b7280;
+        }
+
+        .transaction-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .transaction-date {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .kyc-status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .kyc-approved {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .kyc-pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: #d97706;
+        }
+
+        .kyc-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .property-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                gap: 2px;
+            }
+            
+            .tab {
+                min-width: auto;
+            }
+            
+            .wallet-section {
+                flex-direction: column;
+            }
+
+            .transaction-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 PropertyFraction</h1>
+            <p>Fractionize, Trade, and Invest in Real Estate Properties</p>
+            
+            <div class="wallet-section">
+                <button id="connectWallet" class="btn btn-primary">
+                    Connect Wallet
+                </button>
+		 <button id="disconnectWallet" class="btn btn-danger hidden">
+                    Disconnect Wallet
+                </button>
+                <div id="walletInfo" class="wallet-info hidden">
+                    <div><strong>Address:</strong> <span id="walletAddress"></span></div>
+                    <div><strong>Balance:</strong> <span id="walletBalance"></span> ETH</div>
+                    <span id="kycStatusBadge" class="kyc-status-badge kyc-pending">KYC: Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="networkError" class="alert alert-error hidden">
+            <strong>Wrong Network!</strong> Please make sure you're connected to the Ganache network (localhost:7545, Chain ID: 1337)
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('create')">🏗️ Create Property</button>
+            <button class="tab" onclick="switchTab('market')">🏪 Marketplace</button>
+            <button class="tab" onclick="switchTab('portfolio')">💼 Portfolio</button>
+            <button class="tab" onclick="switchTab('history')">📊 Transaction History</button>
+            <button class="tab" onclick="switchTab('admin')">⚙️ Admin</button>
+        </div>
+
+        <!-- Create Property Tab -->
+        <div id="create-tab" class="tab-content active">
+            <h2>Create New Property Fraction</h2>
+            <p>Fractionalize your real estate property into tradeable fractions</p>
+
+            <div class="form-grid">
+                <div>
+                    <div class="form-group">
+                        <label>Property Title *</label>
+                        <input type="text" id="propertyTitle" placeholder="e.g., Luxury Downtown Apartment" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fraction Name *</label>
+                        <input type="text" id="fractionName" placeholder="e.g., Downtown Luxury Fraction" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fraction Symbol *</label>
+                        <input type="text" id="fractionSymbol" placeholder="e.g., DLT" maxlength="5" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label>Property Valuation (ETH) *</label>
+                        <input type="number" id="propertyValuation" step="0.01" placeholder="10" min="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Total Supply (Fractions) *</label>
+                        <input type="number" id="totalSupply" placeholder="1000" min="1" required>
+                    </div>
+                    
+ <div class="form-group">
+                        <label>Price Per Fraction (ETH)</label>
+                        <input type="text" id="pricePerFraction" readonly placeholder="Auto-calculated">
+                        <small style="color: #666; font-size: 0.8rem;">Automatically calculated: Valuation ÷ Total Supply</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Property Description</label>
+                <textarea id="propertyDescription" placeholder="Describe your property..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Property Images</label>
+                <div class="image-upload" onclick="document.getElementById('propertyImages').click()">
+                    <div class="upload-text">Click to upload or drag and drop images</div>
+                    <div class="upload-text">PNG, JPG, GIF up to 10MB each</div>
+                    <input type="file" id="propertyImages" class="file-input" multiple accept="image/*">
+                </div>
+                <div id="imagePreview"></div>
+            </div>
+
+            <div class="form-group">
+                <label>IPFS Document Hash (Optional)</label>
+                <input type="text" id="ipfsHash" placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+            </div>
+
+            <button id="createPropertyBtn" class="btn btn-primary" onclick="createProperty()">
+                Create Property Fraction
+            </button>
+
+            <div id="createStatus"></div>
+        </div>
+
+        <!-- Marketplace Tab -->
+        <div id="market-tab" class="tab-content">
+            <h2>Property Marketplace</h2>
+            <p>Browse and invest in fractionized real estate properties</p>
+
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalProperties">0</div>
+                    <div>Total Properties</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="totalValue">0</div>
+                    <div>Total Value (ETH)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="availableFractions">0</div>
+                    <div>Available Fractions</div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="loadProperties()">
+                🔄 Refresh Properties
+            </button>
+
+            <div id="propertiesList" class="property-grid">
+                <div class="alert alert-info">
+                    Click "Refresh Properties" to load available properties
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Tab -->
+        <div id="portfolio-tab" class="tab-content">
+            <h2>My Investment Portfolio</h2>
+            <p>Manage your property fraction investments</p>
+
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="myPropertiesCount">0</div>
+                    <div>Properties Invested</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="myTotalFractions">0</div>
+                    <div>Total Fractions</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="portfolioValue">0</div>
+                    <div>Portfolio Value (ETH)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Select Property</label>
+                <select id="portfolioProperty">
+                    <option value="">Select a property you own fractions in</option>
+                </select>
+            </div>
+
+            <div class="form-grid">
+                <div>
+                    <h3>Transfer Fractions</h3>
+                    <div class="form-group">
+                        <label>Recipient Address</label>
+                        <input type="text" id="transferTo" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount to Transfer</label>
+                        <input type="number" id="transferAmount" placeholder="50" min="1">
+                    </div>
+                    <button class="btn btn-primary" onclick="transferFractions()">
+                        📤 Transfer Fractions
+                    </button>
+                </div>
+
+                <div>
+                    <h3>Claim Dividends</h3>
+                    <div class="form-group">
+                        <label>Claimable Amount</label>
+                        <input type="text" id="claimableAmount" readonly value="0 ETH">
+                    </div>
+                    <button class="btn btn-primary" onclick="claimIncome()">
+                        💰 Claim Income
+                    </button>
+                </div>
+            </div>
+
+            <div id="portfolioStatus"></div>
+        </div>
+
+        <!-- Transaction History Tab -->
+        <div id="history-tab" class="tab-content">
+            <h2>📊 Transaction History</h2>
+            <p>View all your property fraction transactions</p>
+
+            <div class="form-group">
+                <label>Filter by Type</label>
+               <select id="historyFilter" onchange="filterTransactions()">
+                    <option value="all">All Transactions</option>
+                    <option value="purchase">Fraction Purchases & Investments</option>
+                    <option value="transfer">Fraction Transfers</option>
+                    <option value="income">Income Deposits</option>
+                    <option value="claim">Dividend Claims</option>
+                    <option value="create">Property Created</option>
+                    <option value="transaction">Contract Transactions (0 ETH)</option>
+                </select>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="loadTransactionHistory()">
+                    🔄 Refresh History
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalTransactions">0</div>
+                    <div>Total Transactions</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="totalVolume">0</div>
+                    <div>Total Volume (ETH)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="userTransactions">0</div>
+                    <div>Your Transactions</div>
+                </div>
+            </div>
+
+            <div id="transactionsList" class="transaction-list">
+                <div class="alert alert-info">
+                    Click "Refresh History" to load transaction history
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Tab -->
+        <div id="admin-tab" class="tab-content">
+            <h2>Admin Panel</h2>
+            <p>Administrative functions for property management and KYC</p>
+
+            <div class="form-grid">
+                  <div>
+                    <h3>Property Management</h3>
+                    <div class="form-group">
+                        <label>Check Available Fractions</label>
+                        <select id="checkFractionsProperty">
+                            <option value="">Select your property</option>
+                        </select>
+                        <button class="btn btn-info" onclick="checkAvailableFractions()">
+                            📊 Check Available Fractions
+                        </button>
+                        <div id="availableFractionsResult" style="margin-top: 10px;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Deposit Income (Property Owner)</label>
+                        <select id="incomeProperty">
+                            <option value="">Select your property</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Income Amount (ETH)</label>
+                        <input type="number" id="incomeAmount" step="0.001" placeholder="1.0" min="0.001">
+                    </div>
+                    <button class="btn btn-primary" onclick="depositIncome()">
+                        💰 Deposit Income
+                    </button>
+                </div>
+
+                <div>
+                    <h3>KYC Management</h3>
+                    <div class="form-group">
+                        <label>User Address</label>
+                        <input type="text" id="kycAddress" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label>Property Address</label>
+                        <select id="kycProperty">
+                            <option value="">Select property for KYC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>KYC Status</label>
+                        <select id="kycStatus">
+                            <option value="true">Approved</option>
+                            <option value="false">Rejected</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="setKYC()">
+                            ✅ Update KYC
+                        </button>
+                        <button class="btn btn-secondary" onclick="selfVerifyKYC()">
+                            🆔 Self-Verify KYC
+                        </button>
+                        <button class="btn btn-info" onclick="checkMyKYC()">
+                            🔍 Check My KYC
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // Contract configuration
+        const FACTORY_ADDRESS = '0x0Cb8EA1f1fB0fA0DBebeffBEF58085A62a392042';
+        
+        const FACTORY_ABI = [
+            {
+                "inputs": [{"name": "_name", "type": "string"}, {"name": "_symbol", "type": "string"}, {"name": "_title", "type": "string"}, {"name": "_description", "type": "string"}, {"name": "_valuation", "type": "uint256"}, {"name": "_totalSupply", "type": "uint256"}, {"name": "_pricePerFraction", "type": "uint256"}, {"name": "_ipfsHash", "type": "string"}],
+                "name": "createProperty",
+                "outputs": [{"name": "", "type": "address"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getAllProperties",
+                "outputs": [{"name": "", "type": "address[]"}],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        const PROPERTY_ABI = [
+            {
+                "inputs": [],
+                "name": "getPropertyInfo",
+                "outputs": [{"components": [{"name": "title", "type": "string"}, {"name": "description", "type": "string"}, {"name": "valuation", "type": "uint256"}, {"name": "pricePerFraction", "type": "uint256"}, {"name": "ipfsHash", "type": "string"}, {"name": "isVerified", "type": "bool"}, {"name": "createdAt", "type": "uint256"}], "name": "", "type": "tuple"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "_seller", "type": "address"}, {"name": "_amount", "type": "uint256"}],
+                "name": "purchaseFractions",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getAvailableFractions",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "propertyOwner",
+                "outputs": [{"name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "_investor", "type": "address"}],
+                "name": "checkBalance",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "_to", "type": "address"}, {"name": "_amount", "type": "uint256"}],
+                "name": "transferFractions",
+                "outputs": [{"name": "", "type": "bool"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "depositIncome",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "claimIncome",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "_investor", "type": "address"}],
+                "name": "calculateShare",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "user", "type": "address"}, {"name": "status", "type": "bool"}],
+                "name": "setKYC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"name": "user", "type": "address"}],
+                "name": "getKYCStatus",
+                "outputs": [{"name": "", "type": "bool"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "selfVerifyKYC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+	
+// IndexedDB setup for image storage
+        let imageDB;
+        
+        function initImageDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PropertyImagesDB', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    imageDB = request.result;
+                    resolve(imageDB);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('images')) {
+                        db.createObjectStore('images', { keyPath: 'propertyId' });
+                    }
+                };
+            });
+        }
+        
+        async function saveImagesToDB(propertyId, images) {
+            if (!imageDB) return;
+            
+            const transaction = imageDB.transaction(['images'], 'readwrite');
+            const store = transaction.objectStore('images');
+            await store.put({ propertyId, images });
+        }
+        
+        async function loadImagesFromDB() {
+            if (!imageDB) return;
+            
+            const transaction = imageDB.transaction(['images'], 'readonly');
+            const store = transaction.objectStore('images');
+            const request = store.getAll();
+            
+            return new Promise((resolve) => {
+                request.onsuccess = () => {
+                    const results = request.result;
+                    results.forEach(item => {
+                        propertyImages[item.propertyId] = item.images;
+                    });
+                    resolve();
+                };
+            });
+        }
+
+        // Global variables
+        let web3;
+        let account;
+        let factoryContract;
+        let properties = [];
+        let allTransactions = [];
+        let userKYCStatus = false;
+        let propertyImages = {};
+	
+
+function setupPriceCalculation() {
+    console.log('Setting up price calculation...');
+    
+    const valuationInput = document.getElementById('propertyValuation');
+    const totalSupplyInput = document.getElementById('totalSupply');
+    const pricePerFractionInput = document.getElementById('pricePerFraction');
+
+    if (!valuationInput || !totalSupplyInput || !pricePerFractionInput) {
+        console.error('Price calculation inputs not found:', {
+            valuation: !!valuationInput,
+            totalSupply: !!totalSupplyInput,
+            pricePerFraction: !!pricePerFractionInput
+        });
+        return;
+    }
+
+    console.log('All price calculation inputs found');
+
+    function calculatePrice() {
+        const valuation = parseFloat(valuationInput.value);
+        const totalSupply = parseInt(totalSupplyInput.value);
+        console.log('Calculating price with values:', { valuation, totalSupply });
+        
+        if (valuation > 0 && totalSupply > 0) {
+            const pricePerFraction = valuation / totalSupply;
+            const formattedPrice = pricePerFraction.toFixed(6) + ' ETH';
+            pricePerFractionInput.value = formattedPrice;
+            console.log('Price calculated and set:', formattedPrice);
+        } else {
+            pricePerFractionInput.value = 'Enter valuation and supply above';
+            console.log('Invalid input values, showing placeholder message');
+        }
+    }
+
+    // Add event listeners
+    valuationInput.addEventListener('input', calculatePrice);
+    totalSupplyInput.addEventListener('input', calculatePrice);
+    valuationInput.addEventListener('change', calculatePrice);
+    totalSupplyInput.addEventListener('change', calculatePrice);
+    valuationInput.addEventListener('keyup', calculatePrice);
+    totalSupplyInput.addEventListener('keyup', calculatePrice);
+
+    // Force initial calculation
+    calculatePrice();
+    
+    console.log('Price calculation setup complete');
+}
+
+        // Initialize the app
+        async function initializeApp() {
+            console.log('Initializing dApp...');
+
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('MetaMask detected');
+                web3 = new Web3(window.ethereum);
+                
+                try {
+                    factoryContract = new web3.eth.Contract(FACTORY_ABI, FACTORY_ADDRESS);
+                    console.log('Factory contract initialized');
+                    
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        account = accounts[0];
+                        await updateWalletInfo();
+                    }
+                } catch (error) {
+                    console.error('Error initializing contracts:', error);
+                    showStatus('Error initializing contracts. Please check the factory address.', 'error');
+                }
+            } else {
+                console.log('MetaMask not detected');
+                showStatus('Please install MetaMask to use this dApp', 'error');
+                document.getElementById('networkError').textContent = 'Please install MetaMask browser extension to use this dApp';
+                document.getElementById('networkError').classList.remove('hidden');
+            }
+
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            document.getElementById('disconnectWallet').addEventListener('click', disconnectWallet);
+            setupImageUpload();
+	    await initImageDB();
+            await loadImagesFromDB();
+	    setTimeout(setupPriceCalculation, 200);
+	    
+        }
+	
+
+        function setupImageUpload() {
+            const imageUpload = document.querySelector('.image-upload');
+            const fileInput = document.getElementById('propertyImages');
+            const imagePreview = document.getElementById('imagePreview');
+
+            imageUpload.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            imageUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUpload.classList.add('dragover');
+            });
+
+            imageUpload.addEventListener('dragleave', () => {
+                imageUpload.classList.remove('dragover');
+            });
+
+            imageUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUpload.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleImageFiles(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleImageFiles(e.target.files);
+            });
+        }
+
+        function handleImageFiles(files) {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = '';
+
+            Array.from(files).forEach((file, index) => {
+                if (file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'image-preview';
+                        img.alt = `Property image ${index + 1}`;
+                        
+                        const container = document.createElement('div');
+                        container.style.position = 'relative';
+                        container.style.display = 'inline-block';
+                        container.style.margin = '5px';
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '×';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '5px';
+                        removeBtn.style.right = '5px';
+                        removeBtn.style.background = 'rgba(255,0,0,0.7)';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.width = '25px';
+                        removeBtn.style.height = '25px';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.onclick = () => container.remove();
+                        
+                        container.appendChild(img);
+                        container.appendChild(removeBtn);
+                        imagePreview.appendChild(container);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('Please install MetaMask!');
+                return;
+            }
+
+            try {
+                console.log('Requesting wallet connection...');
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                account = accounts[0];
+                console.log('Connected to account:', account);
+                
+                await updateWalletInfo();
+                showStatus('Wallet connected successfully!', 'success');
+                
+                const isCorrectNetwork = await checkAndSwitchNetwork();
+                if (!isCorrectNetwork) {
+                    showStatus('Please switch to Ganache network to use this dApp', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showStatus('Error connecting wallet: ' + error.message, 'error');
+            }
+        }
+
+        async function updateWalletInfo() {
+            try {
+                const balance = await web3.eth.getBalance(account);
+                const balanceInEth = web3.utils.fromWei(balance, 'ether');
+                
+                document.getElementById('walletAddress').textContent = 
+                    account.substr(0, 6) + '...' + account.substr(-4);
+                document.getElementById('walletBalance').textContent = 
+                    parseFloat(balanceInEth).toFixed(4);
+                document.getElementById('walletInfo').classList.remove('hidden');
+                document.getElementById('connectWallet').classList.add('hidden');
+                document.getElementById('disconnectWallet').classList.remove('hidden');
+
+                await checkAndSwitchNetwork();
+                await updateKYCStatus();
+                
+            } catch (error) {
+                console.error('Error updating wallet info:', error);
+            }
+        }
+
+        async function checkAndSwitchNetwork() {
+            try {
+                const networkId = await web3.eth.net.getId();
+                const chainId = await web3.eth.getChainId();
+                console.log('Connected to network ID:', networkId, 'Chain ID:', chainId);
+                
+                if (chainId !== 1337 && chainId !== 5777) {
+                    console.log('Wrong network detected, attempting to switch to Ganache...');
+                    document.getElementById('networkError').classList.remove('hidden');
+                    document.getElementById('networkError').innerHTML = `
+                        <strong>Wrong Network!</strong> Please switch to Ganache network.
+                        <button onclick="switchToGanache()" class="btn btn-primary" style="margin-left: 10px;">
+                            Switch to Ganache
+                        </button>
+                    `;
+                    return false;
+                } else {
+                    document.getElementById('networkError').classList.add('hidden');
+                    console.log('Connected to correct Ganache network');
+                    return true;
+                }
+                
+            } catch (error) {
+                console.error('Error checking network:', error);
+                return false;
+            }
+        }
+
+        async function switchToGanache() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x539' }],
+                });
+                console.log('Switched to Ganache network');
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x539',
+                                chainName: 'Ganache Local',
+                                nativeCurrency: {
+                                    name: 'Ethereum',
+                                    symbol: 'ETH',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['http://127.0.0.1:7545'],
+                                blockExplorerUrls: null
+                            }]
+                        });
+                        console.log('Added and switched to Ganache network');
+                    } catch (addError) {
+                        console.error('Error adding Ganache network:', addError);
+                        showStatus('Failed to add Ganache network. Please add it manually in MetaMask.', 'error');
+                    }
+                } else {
+                    console.error('Error switching network:', switchError);
+                    showStatus('Failed to switch network. Please switch to Ganache manually.', 'error');
+                }
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'market') {
+                loadProperties();
+            } else if (tabName === 'portfolio') {
+                loadPortfolio();
+            } else if (tabName === 'history') {
+                loadTransactionHistory();
+            } else if (tabName === 'admin') {
+                loadPortfolio();
+            }
+        }
+
+        async function createProperty() {
+            if (!account) {
+                showStatus('Please connect your wallet first', 'error', 'createStatus');
+                return;
+            }
+
+            const isCorrectNetwork = await checkAndSwitchNetwork();
+            if (!isCorrectNetwork) {
+                showStatus('Please switch to Ganache network before creating property', 'error', 'createStatus');
+                return;
+            }
+
+            const title = document.getElementById('propertyTitle').value.trim();
+            const name = document.getElementById('fractionName').value.trim();
+            const symbol = document.getElementById('fractionSymbol').value.trim().toUpperCase();
+            const description = document.getElementById('propertyDescription').value.trim();
+            const valuation = document.getElementById('propertyValuation').value;
+            const totalSupply = document.getElementById('totalSupply').value;
+            const pricePerFraction = document.getElementById('pricePerFraction').value;
+            let ipfsHash = document.getElementById('ipfsHash').value.trim() || 'QmDefaultHash';
+
+            if (!title || !name || !symbol || !valuation || !totalSupply || !pricePerFraction) {
+                showStatus('Please fill in all required fields (*)', 'error', 'createStatus');
+                return;
+            }
+
+            if (parseFloat(valuation) <= 0 || parseInt(totalSupply) <= 0 || parseFloat(pricePerFraction) <= 0) {
+                showStatus('All numeric values must be greater than 0', 'error', 'createStatus');
+                return;
+            }
+
+            try {
+                showStatus('Creating property fraction... This may take a moment.', 'info', 'createStatus');
+                
+                const valuationWei = web3.utils.toWei(valuation, 'ether');
+                const pricePerFractionWei = web3.utils.toWei(pricePerFraction, 'ether');
+
+                const images = document.getElementById('imagePreview').querySelectorAll('img');
+                const imageDataUrls = Array.from(images).map(img => img.src);
+                
+               if (imageDataUrls.length > 0) {
+                    const propertyId = `${account}_${Date.now()}`;
+                    propertyImages[propertyId] = imageDataUrls;
+                    // Save images to IndexedDB
+                    await saveImagesToDB(propertyId, imageDataUrls);
+                    ipfsHash = propertyId;
+                }
+
+                console.log('Creating property with params:', {
+                    name, symbol, title, description, 
+                    valuationWei, totalSupply, pricePerFractionWei, ipfsHash
+                });
+
+                const result = await factoryContract.methods.createProperty(
+                    name,
+                    symbol,
+                    title,
+                    description,
+                    valuationWei,
+                    totalSupply,
+                    pricePerFractionWei,
+                    ipfsHash
+                ).send({ from: account });
+
+                console.log('Property created successfully:', result);
+                showStatus('Property fraction created successfully!', 'success', 'createStatus');
+                
+                clearCreateForm();
+                
+            } catch (error) {
+                console.error('Error creating property:', error);
+                let errorMessage = 'Error creating property';
+                if (error.message.includes('insufficient funds')) {
+                    errorMessage = 'Insufficient ETH balance for gas fees';
+                } else if (error.message.includes('User denied')) {
+                    errorMessage = 'Transaction rejected by user';
+                } else if (error.message) {
+                    errorMessage = 'Error: ' + error.message;
+                }
+                showStatus(errorMessage, 'error', 'createStatus');
+            }
+        }
+
+        function clearCreateForm() {
+            document.getElementById('propertyTitle').value = '';
+            document.getElementById('fractionName').value = '';
+            document.getElementById('fractionSymbol').value = '';
+            document.getElementById('propertyDescription').value = '';
+            document.getElementById('propertyValuation').value = '';
+            document.getElementById('totalSupply').value = '';
+            document.getElementById('pricePerFraction').value = '';
+            document.getElementById('ipfsHash').value = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('propertyImages').value = '';
+        }
+
+        async function loadProperties() {
+            if (!factoryContract) {
+                showStatus('Please connect your wallet first', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Loading properties...', 'info');
+                const propertyAddresses = await factoryContract.methods.getAllProperties().call();
+                const propertiesList = document.getElementById('propertiesList');
+                
+                console.log('Found properties:', propertyAddresses);
+
+                if (propertyAddresses.length === 0) {
+                    propertiesList.innerHTML = '<div class="alert alert-info">No properties available yet. Create the first property!</div>';
+                    updateMarketStats(0, 0, 0);
+                    return;
+                }
+
+                propertiesList.innerHTML = '';
+                let totalValue = 0;
+                let totalAvailable = 0;
+
+                for (let i = 0; i < propertyAddresses.length; i++) {
+                    const address = propertyAddresses[i];
+                    try {
+                        const propertyContract = new web3.eth.Contract(PROPERTY_ABI, address);
+                        const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                        const availableFractions = await propertyContract.methods.getAvailableFractions().call();
+                        const propertyOwner = await propertyContract.methods.propertyOwner().call();
+                        
+                        const valuation = parseFloat(web3.utils.fromWei(propertyInfo.valuation, 'ether'));
+                        totalValue += valuation;
+                        totalAvailable += parseInt(availableFractions);
+
+                        const card = createPropertyCard(address, propertyInfo, availableFractions, propertyOwner);
+                        propertiesList.appendChild(card);
+                    } catch (error) {
+                        console.error(`Error loading property ${address}:`, error);
+                    }
+                }
+
+                updateMarketStats(propertyAddresses.length, totalValue, totalAvailable);
+                showStatus('Properties loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                showStatus('Error loading properties: ' + error.message, 'error');
+            }
+        }
+
+        function createPropertyCard(address, propertyInfo, availableFractions, propertyOwner) {
+            const card = document.createElement('div');
+            card.className = 'property-card';
+            
+            const isOwner = account && account.toLowerCase() === propertyOwner.toLowerCase();
+            const pricePerFraction = parseFloat(web3.utils.fromWei(propertyInfo.pricePerFraction, 'ether'));
+            const valuation = parseFloat(web3.utils.fromWei(propertyInfo.valuation, 'ether'));
+
+            const images = propertyImages[propertyInfo.ipfsHash] || [];
+            const mainImage = images[0] || null;
+
+            let imageHtml = '';
+            if (mainImage) {
+                imageHtml = `<img src="${mainImage}" alt="${propertyInfo.title}" />`;
+            } else {
+                imageHtml = `<div class="no-image">🏠 ${propertyInfo.title}</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="property-image ${!mainImage ? 'no-image' : ''}">
+                    ${imageHtml}
+                </div>
+                <div class="property-content">
+                    <div class="property-title">${propertyInfo.title}</div>
+                    <p>${propertyInfo.description || 'No description provided'}</p>
+                    
+                    <div class="property-stats">
+                        <div class="stat">
+                            <div class="stat-value">${valuation.toFixed(2)}</div>
+                            <div class="stat-label">Total Value (ETH)</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${pricePerFraction.toFixed(4)}</div>
+                            <div class="stat-label">Per Fraction (ETH)</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${availableFractions}</div>
+                            <div class="stat-label">Available Fractions</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">
+                                <span class="status ${propertyInfo.isVerified ? 'verified' : 'pending'}">
+                                    ${propertyInfo.isVerified ? 'Verified' : 'Pending'}
+                                </span>
+                            </div>
+                            <div class="stat-label">Status</div>
+                        </div>
+                    </div>
+
+                    ${!isOwner && account && parseInt(availableFractions) > 0 ? `
+                        <div class="buy-section">
+                            <div class="buy-controls">
+                                <input type="number" id="buyAmount_${address}" 
+                                       placeholder="Fractions to buy" min="1" max="${availableFractions}">
+                                <button onclick="buyFractions('${address}')" class="btn btn-primary btn-small">
+                                    Buy
+                                </button>
+                            </div>
+                            <small>Cost: <span id="totalCost_${address}">0</span> ETH</small>
+                        </div>
+                    ` : ''}
+
+                    ${isOwner ? `
+                        <div class="alert alert-info">
+                            You own this property
+                        </div>
+                    ` : ''}
+                    
+                    ${images.length > 1 ? `
+                        <div style="margin-top: 10px;">
+                            <button onclick="showImageGallery('${propertyInfo.ipfsHash}')" class="btn btn-secondary btn-small">
+                                View All Images (${images.length})
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    <small><strong>Address:</strong> ${address.substr(0, 10)}...</small>
+                </div>
+            `;
+
+            if (!isOwner && account && parseInt(availableFractions) > 0) {
+                setTimeout(() => {
+                    const input = document.getElementById(`buyAmount_${address}`);
+                    if (input) {
+                        input.addEventListener('input', function() {
+                            const amount = parseFloat(this.value) || 0;
+                            const cost = amount * pricePerFraction;
+                            const costElement = document.getElementById(`totalCost_${address}`);
+                            if (costElement) {
+                                costElement.textContent = cost.toFixed(4);
+                            }
+                        });
+                    }
+                }, 100);
+            }
+
+            return card;
+        }
+
+        function showImageGallery(ipfsHash) {
+            const images = propertyImages[ipfsHash] || [];
+            if (images.length === 0) return;
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            const gallery = document.createElement('div');
+            gallery.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                max-width: 80%;
+                max-height: 80%;
+                overflow-y: auto;
+            `;
+
+            let galleryHtml = '<h3>Property Images</h3><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
+            images.forEach(imgSrc => {
+                galleryHtml += `<img src="${imgSrc}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;" />`;
+            });
+            galleryHtml += '</div><button onclick="this.closest(\'.modal\').remove()" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px;">Close</button>';
+
+            gallery.innerHTML = galleryHtml;
+            modal.appendChild(gallery);
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        async function buyFractions(propertyAddress) {
+            if (!account) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const amountInput = document.getElementById(`buyAmount_${propertyAddress}`);
+            const amount = parseInt(amountInput.value);
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount of fractions to buy');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                const propertyOwner = await propertyContract.methods.propertyOwner().call();
+                const availableFractions = await propertyContract.methods.getAvailableFractions().call();
+
+                if (amount > parseInt(availableFractions)) {
+                    alert('Not enough fractions available for purchase');
+                    return;
+                }
+
+                const pricePerFraction = web3.utils.toBN(propertyInfo.pricePerFraction);
+                const totalCost = pricePerFraction.mul(web3.utils.toBN(amount));
+
+                console.log('Purchasing fractions:', {
+                    amount,
+                    pricePerFraction: propertyInfo.pricePerFraction,
+                    totalCost: totalCost.toString(),
+                    propertyOwner
+                });
+
+                showStatus('Processing purchase...', 'info');
+
+                const result = await propertyContract.methods.purchaseFractions(propertyOwner, amount)
+                    .send({ 
+                        from: account, 
+                        value: totalCost.toString()
+                    });
+
+                console.log('Purchase successful:', result);
+                showStatus('Fractions purchased successfully!', 'success');
+                
+                amountInput.value = '';
+                loadProperties();
+
+            } catch (error) {
+                console.error('Error purchasing fractions:', error);
+                let errorMessage = 'Error purchasing fractions';
+                if (error.message.includes('insufficient funds')) {
+                    errorMessage = 'Insufficient ETH balance';
+                } else if (error.message.includes('User denied')) {
+                    errorMessage = 'Transaction rejected by user';
+                }
+                showStatus(errorMessage, 'error');
+            }
+        }
+
+        async function loadPortfolio() {
+            if (!account || !factoryContract) {
+                showStatus('Please connect your wallet first', 'error', 'portfolioStatus');
+                return;
+            }
+
+            try {
+                const propertyAddresses = await factoryContract.methods.getAllProperties().call();
+                const portfolioSelect = document.getElementById('portfolioProperty');
+                const incomeSelect = document.getElementById('incomeProperty');
+                
+                portfolioSelect.innerHTML = '<option value="">Select a property you own fractions in</option>';
+                 incomeSelect.innerHTML = '<option value="">Select your property</option>';
+                
+                const checkFractionsSelect = document.getElementById('checkFractionsProperty');
+                if (checkFractionsSelect) {
+                    checkFractionsSelect.innerHTML = '<option value="">Select your property</option>';
+                }
+                
+                let totalFractions = 0;
+                let portfolioValue = 0;
+                let propertiesCount = 0;
+
+                for (let address of propertyAddresses) {
+                    try {
+                        const propertyContract = new web3.eth.Contract(PROPERTY_ABI, address);
+                        const balance = await propertyContract.methods.checkBalance(account).call();
+                        const propertyOwner = await propertyContract.methods.propertyOwner().call();
+                        const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                        
+                        if (parseInt(balance) > 0) {
+                            propertiesCount++;
+                            totalFractions += parseInt(balance);
+                            const fractionValue = parseFloat(web3.utils.fromWei(propertyInfo.pricePerFraction, 'ether')) * parseInt(balance);
+                            portfolioValue += fractionValue;
+                            
+                            portfolioSelect.innerHTML += `<option value="${address}">${propertyInfo.title} (${balance} fractions)</option>`;
+                        }
+
+                         if (propertyOwner.toLowerCase() === account.toLowerCase()) {
+                            incomeSelect.innerHTML += `<option value="${address}">${propertyInfo.title}</option>`;
+                            
+                            const checkFractionsSelect = document.getElementById('checkFractionsProperty');
+                            if (checkFractionsSelect) {
+                                checkFractionsSelect.innerHTML += `<option value="${address}">${propertyInfo.title}</option>`;
+                            }
+                        }
+                        
+                        const kycSelect = document.getElementById('kycProperty');
+                        if (kycSelect && propertyOwner.toLowerCase() === account.toLowerCase()) {
+                            kycSelect.innerHTML += `<option value="${address}">${propertyInfo.title}</option>`;
+                        }
+                    } catch (error) {
+                        console.error(`Error loading property ${address}:`, error);
+                    }
+                }
+
+                document.getElementById('myPropertiesCount').textContent = propertiesCount;
+                document.getElementById('myTotalFractions').textContent = totalFractions;
+                document.getElementById('portfolioValue').textContent = portfolioValue.toFixed(4);
+
+                if (portfolioSelect.value) {
+                    await updateClaimableAmount();
+                }
+
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+                showStatus('Error loading portfolio: ' + error.message, 'error', 'portfolioStatus');
+            }
+        }
+
+        async function updateClaimableAmount() {
+            const propertyAddress = document.getElementById('portfolioProperty').value;
+            if (!propertyAddress || !account) return;
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const claimableShare = await propertyContract.methods.calculateShare(account).call();
+                const claimableEth = web3.utils.fromWei(claimableShare, 'ether');
+                
+                document.getElementById('claimableAmount').value = `${claimableEth} ETH`;
+            } catch (error) {
+                console.error('Error updating claimable amount:', error);
+            }
+        }
+
+        async function transferFractions() {
+            const propertyAddress = document.getElementById('portfolioProperty').value;
+            const recipientAddress = document.getElementById('transferTo').value.trim();
+            const amount = parseInt(document.getElementById('transferAmount').value);
+
+            if (!propertyAddress || !recipientAddress || !amount) {
+                showStatus('Please fill in all transfer fields', 'error', 'portfolioStatus');
+                return;
+            }
+
+            if (!web3.utils.isAddress(recipientAddress)) {
+                showStatus('Invalid recipient address', 'error', 'portfolioStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const balance = await propertyContract.methods.checkBalance(account).call();
+
+                if (amount > parseInt(balance)) {
+                    showStatus('Insufficient fraction balance', 'error', 'portfolioStatus');
+                    return;
+                }
+
+                showStatus('Transferring fractions...', 'info', 'portfolioStatus');
+
+                await propertyContract.methods.transferFractions(recipientAddress, amount)
+                    .send({ from: account });
+
+                showStatus('Fractions transferred successfully!', 'success', 'portfolioStatus');
+                
+                document.getElementById('transferTo').value = '';
+                document.getElementById('transferAmount').value = '';
+                loadPortfolio();
+
+            } catch (error) {
+                console.error('Error transferring fractions:', error);
+                showStatus('Error transferring fractions: ' + error.message, 'error', 'portfolioStatus');
+            }
+        }
+
+        async function claimIncome() {
+            const propertyAddress = document.getElementById('portfolioProperty').value;
+            if (!propertyAddress) {
+                showStatus('Please select a property', 'error', 'portfolioStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                
+                showStatus('Claiming income...', 'info', 'portfolioStatus');
+
+                await propertyContract.methods.claimIncome().send({ from: account });
+
+                showStatus('Income claimed successfully!', 'success', 'portfolioStatus');
+                await updateClaimableAmount();
+
+            } catch (error) {
+                console.error('Error claiming income:', error);
+                let errorMessage = 'Error claiming income';
+                if (error.message.includes('No income to claim')) {
+                    errorMessage = 'No income available to claim';
+                }
+                showStatus(errorMessage, 'error', 'portfolioStatus');
+            }
+        }
+	
+	async function checkAvailableFractions() {
+            const propertyAddress = document.getElementById('checkFractionsProperty').value;
+            if (!propertyAddress) {
+                showStatus('Please select a property', 'error', 'adminStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                const availableFractions = await propertyContract.methods.getAvailableFractions().call();
+                const propertyOwner = await propertyContract.methods.propertyOwner().call();
+
+                if (propertyOwner.toLowerCase() !== account.toLowerCase()) {
+                    showStatus('You are not the owner of this property', 'error', 'adminStatus');
+                    return;
+                }
+
+                // Calculate total supply from property valuation and price per fraction
+                const valuation = web3.utils.toBN(propertyInfo.valuation);
+                const pricePerFraction = web3.utils.toBN(propertyInfo.pricePerFraction);
+                const totalSupply = valuation.div(pricePerFraction);
+                
+                const soldFractions = parseInt(totalSupply.toString()) - parseInt(availableFractions);
+                const soldPercentage = ((soldFractions / parseInt(totalSupply.toString())) * 100).toFixed(1);
+                const pricePerFractionEth = parseFloat(web3.utils.fromWei(propertyInfo.pricePerFraction, 'ether'));
+                const potentialRevenue = parseInt(availableFractions) * pricePerFractionEth;
+
+                const resultHtml = `
+                    <div class="stats-grid" style="margin-top: 15px;">
+                        <div class="stats-card">
+                            <div class="stats-number">${availableFractions}</div>
+                            <div>Available Fractions</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-number">${soldFractions}</div>
+                            <div>Sold Fractions</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-number">${soldPercentage}%</div>
+                            <div>Sold Percentage</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-number">${potentialRevenue.toFixed(4)}</div>
+                            <div>Potential Revenue (ETH)</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>${propertyInfo.title}</strong><br>
+                        Total Supply: ${totalSupply.toString()} fractions<br>
+                        Price per Fraction: ${pricePerFractionEth.toFixed(4)} ETH<br>
+                        Status: ${parseInt(availableFractions) > 0 ? 'Fractions available for sale' : 'All fractions sold!'}
+                    </div>
+                `;
+
+                document.getElementById('availableFractionsResult').innerHTML = resultHtml;
+                showStatus('Fraction availability checked successfully', 'success', 'adminStatus');
+
+            } catch (error) {
+                console.error('Error checking available fractions:', error);
+                showStatus('Error checking available fractions: ' + error.message, 'error', 'adminStatus');
+            }
+        }
+
+        async function depositIncome() {
+            const propertyAddress = document.getElementById('incomeProperty').value;
+            const amount = document.getElementById('incomeAmount').value;
+
+            if (!propertyAddress || !amount || parseFloat(amount) <= 0) {
+                showStatus('Please select a property and enter a valid amount', 'error', 'adminStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const amountWei = web3.utils.toWei(amount, 'ether');
+
+                showStatus('Depositing income...', 'info', 'adminStatus');
+
+                await propertyContract.methods.depositIncome()
+                    .send({ 
+                        from: account, 
+                        value: amountWei 
+                    });
+
+                showStatus('Income deposited successfully!', 'success', 'adminStatus');
+                
+                document.getElementById('incomeAmount').value = '';
+
+            } catch (error) {
+                console.error('Error depositing income:', error);
+                showStatus('Error depositing income: ' + error.message, 'error', 'adminStatus');
+            }
+        }
+
+        function updateMarketStats(totalProps, totalVal, availFractions) {
+            document.getElementById('totalProperties').textContent = totalProps;
+            document.getElementById('totalValue').textContent = totalVal.toFixed(2);
+            document.getElementById('availableFractions').textContent = availFractions;
+        }
+
+        function showStatus(message, type, elementId = null) {
+            const className = `alert alert-${type}`;
+            const html = `<div class="${className}">${message}</div>`;
+            
+            if (elementId) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = html;
+                    setTimeout(() => {
+                        element.innerHTML = '';
+                    }, 5000);
+                }
+            } else {
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        async function setKYC() {
+            const userAddress = document.getElementById('kycAddress').value.trim();
+            const propertyAddress = document.getElementById('kycProperty').value;
+            const status = document.getElementById('kycStatus').value === 'true';
+
+            if (!userAddress || !propertyAddress) {
+                showStatus('Please fill in user address and select a property', 'error', 'adminStatus');
+                return;
+            }
+
+            if (!web3.utils.isAddress(userAddress)) {
+                showStatus('Invalid user address', 'error', 'adminStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                showStatus('Updating KYC status...', 'info', 'adminStatus');
+
+                await propertyContract.methods.setKYC(userAddress, status)
+                    .send({ from: account });
+
+                showStatus(`KYC status updated successfully! User is now ${status ? 'approved' : 'rejected'}`, 'success', 'adminStatus');
+                
+                if (userAddress.toLowerCase() === account.toLowerCase()) {
+                    await updateKYCStatus();
+                }
+
+            } catch (error) {
+                console.error('Error setting KYC:', error);
+                showStatus('Error updating KYC: ' + error.message, 'error', 'adminStatus');
+            }
+        }
+
+        async function selfVerifyKYC() {
+            const propertyAddress = document.getElementById('kycProperty').value;
+
+            if (!propertyAddress) {
+                showStatus('Please select a property for KYC verification', 'error', 'adminStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                showStatus('Verifying your KYC...', 'info', 'adminStatus');
+
+                await propertyContract.methods.selfVerifyKYC()
+                    .send({ from: account });
+
+                showStatus('KYC self-verification successful!', 'success', 'adminStatus');
+                await updateKYCStatus();
+
+            } catch (error) {
+                console.error('Error self-verifying KYC:', error);
+                showStatus('Error with KYC self-verification: ' + error.message, 'error', 'adminStatus');
+            }
+        }
+
+        async function checkMyKYC() {
+            const propertyAddress = document.getElementById('kycProperty').value;
+
+            if (!propertyAddress) {
+                showStatus('Please select a property to check KYC status', 'error', 'adminStatus');
+                return;
+            }
+
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, propertyAddress);
+                const kycStatus = await propertyContract.methods.getKYCStatus(account).call();
+                
+                showStatus(`Your KYC status for this property: ${kycStatus ? 'Approved' : 'Not Approved'}`, 
+                          kycStatus ? 'success' : 'info', 'adminStatus');
+
+            } catch (error) {
+                console.error('Error checking KYC:', error);
+                showStatus('Error checking KYC status: ' + error.message, 'error', 'adminStatus');
+            }
+        }
+
+        async function updateKYCStatus() {
+            if (!account) return;
+            
+            try {
+                const propertyAddresses = await factoryContract.methods.getAllProperties().call();
+                let hasKYC = false;
+                
+                for (let address of propertyAddresses) {
+                    try {
+                        const propertyContract = new web3.eth.Contract(PROPERTY_ABI, address);
+                        const kycStatus = await propertyContract.methods.getKYCStatus(account).call();
+                        if (kycStatus) {
+                            hasKYC = true;
+                            break;
+                        }
+                    } catch (error) {
+                        console.log('Error checking KYC for property:', address);
+                    }
+                }
+                
+                userKYCStatus = hasKYC;
+                const kycBadge = document.getElementById('kycStatusBadge');
+                if (kycBadge) {
+                    kycBadge.textContent = hasKYC ? 'KYC: Approved' : 'KYC: Pending';
+                    kycBadge.className = `kyc-status-badge ${hasKYC ? 'kyc-approved' : 'kyc-pending'}`;
+                }
+            } catch (error) {
+                console.error('Error updating KYC status:', error);
+            }
+        }
+
+      async function loadTransactionHistory() {
+    if (!factoryContract || !account) {
+        showStatus('Please connect your wallet first', 'error');
+        return;
+    }
+
+    try {
+        showStatus('Loading transaction history...', 'info');
+        
+        const propertyAddresses = await factoryContract.methods.getAllProperties().call();
+        allTransactions = [];
+        
+        console.log('Found property addresses:', propertyAddresses);
+        
+        if (propertyAddresses.length === 0) {
+            displayTransactions([]);
+            updateTransactionStats();
+            showStatus('No properties found. Create a property first!', 'info');
+            return;
+        }
+
+        const currentBlock = await web3.eth.getBlockNumber();
+        const fromBlock = Math.max(0, currentBlock - 50000);
+        
+        console.log('Loading events from block:', fromBlock, 'to latest block:', currentBlock);
+        
+        // Try to get factory events first - try multiple possible event names
+        const possibleEventNames = ['PropertyCreated', 'PropertyFractionCreated', 'NewProperty'];
+        let foundFactoryEvents = false;
+
+        for (let eventName of possibleEventNames) {
+            try {
+                const factoryEvents = await factoryContract.getPastEvents(eventName, {
+                    fromBlock: fromBlock,
+                    toBlock: 'latest'
+                });
+                console.log(`${eventName} events:`, factoryEvents.length);
+                
+                if (factoryEvents.length > 0) {
+                    foundFactoryEvents = true;
+                    factoryEvents.forEach(event => {
+                        allTransactions.push({
+                            type: 'create',
+                            property: 'Property Created',
+                            propertyAddress: event.returnValues.propertyAddress || event.returnValues.property,
+                            owner: event.returnValues.owner || event.returnValues.creator,
+                            blockNumber: event.blockNumber,
+                            txHash: event.transactionHash,
+                            timestamp: Date.now()
+                        });
+                    });
+                }
+            } catch (e) {
+                console.log(`No ${eventName} events found:`, e.message);
+            }
+        }
+
+        // If no factory events found, create synthetic property creation transactions
+        if (!foundFactoryEvents) {
+            console.log('No factory events found, creating synthetic property creation transactions...');
+            
+            for (let address of propertyAddresses) {
+                try {
+                    const propertyContract = new web3.eth.Contract(PROPERTY_ABI, address);
+                    const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                    const propertyOwner = await propertyContract.methods.propertyOwner().call();
+                    
+                    // Add a synthetic property creation transaction
+                    allTransactions.push({
+                        type: 'create',
+                        property: propertyInfo.title,
+                        propertyAddress: address,
+                        owner: propertyOwner,
+                        valuation: propertyInfo.valuation,
+                        totalSupply: 'N/A',
+                        blockNumber: 1,
+                        txHash: 'create_' + address.substr(-8),
+                        timestamp: Date.now()
+                    });
+                    console.log('Added synthetic property creation for:', propertyInfo.title);
+                } catch (error) {
+                    console.log('Error creating synthetic property creation transaction:', error);
+                }
+            }
+        }
+        
+        // Load events for each property
+        for (let address of propertyAddresses) {
+            try {
+                const propertyContract = new web3.eth.Contract(PROPERTY_ABI, address);
+                const propertyInfo = await propertyContract.methods.getPropertyInfo().call();
+                
+                console.log('Checking property:', propertyInfo.title, 'at address:', address);
+                
+                // Get all transactions to this contract address
+                try {
+                    console.log('Scanning recent blocks for transactions...');
+                    const recentBlocks = Math.min(1000, currentBlock);
+                    
+                    for (let i = 0; i < recentBlocks; i++) {
+                        const blockNumber = currentBlock - i;
+                        try {
+                            const block = await web3.eth.getBlock(blockNumber, true);
+                            
+                            if (block && block.transactions) {
+                                block.transactions.forEach(tx => {
+                                    // Check if transaction is to our property contract
+                                    if (tx.to && tx.to.toLowerCase() === address.toLowerCase()) {
+                                        console.log('Found transaction to property contract:', tx.hash);
+                                        
+                                        // Add general contract transaction
+                                        allTransactions.push({
+                                            type: 'transaction',
+                                            property: propertyInfo.title,
+                                            propertyAddress: address,
+                                            blockNumber: blockNumber,
+                                            txHash: tx.hash,
+                                            from: tx.from,
+                                            to: tx.to,
+                                            value: tx.value,
+                                            timestamp: Date.now()
+                                        });
+                                    }
+                                    
+                                    // Check if user was involved in any transaction
+                                    if (tx.from && tx.from.toLowerCase() === account.toLowerCase()) {
+                                        console.log('Found user transaction:', tx.hash);
+                                    }
+                                });
+                            }
+                        } catch (blockError) {
+                            // Skip this block if error
+                            if (i % 100 === 0) console.log('Scanned', i, 'blocks...');
+                        }
+                    }
+                    
+                } catch (scanError) {
+                    console.log('Error scanning blocks:', scanError.message);
+                }
+                
+                // Try to get specific events
+                const eventTypes = ['FractionsPurchased', 'Transfer', 'IncomeDeposited', 'IncomeClaimed'];
+                
+                for (let eventType of eventTypes) {
+                    try {
+                        const events = await propertyContract.getPastEvents(eventType, {
+                            fromBlock: fromBlock,
+                            toBlock: 'latest'
+                        });
+                        console.log(`${eventType} events for ${propertyInfo.title}:`, events.length);
+                        
+                        events.forEach(event => {
+                            const transaction = processEvent(event, propertyInfo, address);
+                            if (transaction) {
+                                allTransactions.push(transaction);
+                                console.log('Added transaction:', transaction.type);
+                            }
+                        });
+                    } catch (e) {
+                        console.log(`Event ${eventType} not found or error:`, e.message);
+                    }
+                }
+                
+            } catch (error) {
+                console.error(`Error loading property ${address}:`, error);
+            }
+        }
+        
+        console.log('Total transactions found:', allTransactions.length);
+        
+        // Remove duplicates based on transaction hash
+        const uniqueTransactions = allTransactions.filter((tx, index, self) => 
+            index === self.findIndex(t => t.txHash === tx.txHash)
+        );
+        
+        allTransactions = uniqueTransactions;
+        allTransactions.sort((a, b) => b.blockNumber - a.blockNumber);
+        
+        displayTransactions(allTransactions);
+        updateTransactionStats();
+        
+        if (allTransactions.length === 0) {
+            showStatus('No transactions found. Try creating a property or making a purchase first.', 'info');
+        } else {
+            showStatus(`Found ${allTransactions.length} transactions`, 'success');
+        }
+        
+    } catch (error) {
+        console.error('Error loading transaction history:', error);
+        showStatus('Error loading transaction history: ' + error.message, 'error');
+    }
+}
+
+
+
+
+        function processEvent(event, propertyInfo, propertyAddress) {
+            const userAddress = account.toLowerCase();
+            
+            switch (event.event) {
+                case 'FractionsPurchased':
+                    const buyer = event.returnValues.buyer.toLowerCase();
+                    const seller = event.returnValues.seller.toLowerCase();
+                    if (buyer === userAddress || seller === userAddress) {
+                        return {
+                            type: 'purchase',
+                            property: propertyInfo.title,
+                            propertyAddress: propertyAddress,
+                            amount: event.returnValues.amount,
+                            price: event.returnValues.totalPrice,
+                            buyer: event.returnValues.buyer,
+                            seller: event.returnValues.seller,
+                            blockNumber: event.blockNumber,
+                            txHash: event.transactionHash,
+                            timestamp: Date.now()
+                        };
+                    }
+                    break;
+                    
+                case 'Transfer':
+                    const from = event.returnValues.from.toLowerCase();
+                    const to = event.returnValues.to.toLowerCase();
+                    if (from !== '0x0000000000000000000000000000000000000000' && 
+                        (from === userAddress || to === userAddress)) {
+                        return {
+                            type: 'transfer',
+                            property: propertyInfo.title,
+                            propertyAddress: propertyAddress,
+                            amount: event.returnValues.value,
+                            from: event.returnValues.from,
+                            to: event.returnValues.to,
+                            blockNumber: event.blockNumber,
+                            txHash: event.transactionHash,
+                            timestamp: Date.now()
+                        };
+                    }
+                    break;
+                    
+                case 'IncomeDeposited':
+                    return {
+                        type: 'income',
+                        property: propertyInfo.title,
+                        propertyAddress: propertyAddress,
+                        amount: event.returnValues.amount,
+                        owner: event.returnValues.owner,
+                        blockNumber: event.blockNumber,
+                        txHash: event.transactionHash,
+                        timestamp: Date.now()
+                    };
+                    
+                case 'IncomeClaimed':
+                    if (event.returnValues.investor.toLowerCase() === userAddress) {
+                        return {
+                            type: 'claim',
+                            property: propertyInfo.title,
+                            propertyAddress: propertyAddress,
+                            amount: event.returnValues.amount,
+                            investor: event.returnValues.investor,
+                            blockNumber: event.blockNumber,
+                            txHash: event.transactionHash,
+                            timestamp: Date.now()
+                        };
+                    }
+                    break;
+                    
+                case 'PropertyCreated':
+                    return {
+                        type: 'create',
+                        property: propertyInfo.title,
+                        propertyAddress: propertyAddress,
+                        valuation: propertyInfo.valuation,
+                        totalSupply: event.returnValues.totalSupply,
+                        owner: event.returnValues.owner,
+                        blockNumber: event.blockNumber,
+                        txHash: event.transactionHash,
+                        timestamp: Date.now()
+                    };
+            }
+            
+            return null;
+        }
+
+        function displayTransactions(transactions) {
+            const transactionsList = document.getElementById('transactionsList');
+            
+            if (transactions.length === 0) {
+                transactionsList.innerHTML = '<div class="alert alert-info">No transactions found</div>';
+                return;
+            }
+            
+            transactionsList.innerHTML = '';
+            
+            transactions.forEach(tx => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                transactionItem.innerHTML = createTransactionHTML(tx);
+                transactionsList.appendChild(transactionItem);
+            });
+        }
+
+        function createTransactionHTML(tx) {
+            const userAddress = account.toLowerCase();
+            let content = '';
+            
+            switch (tx.type) {
+                case 'purchase':
+                    const isBuyer = tx.buyer.toLowerCase() === userAddress;
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type purchase">Fraction Purchase</span>
+                            <span class="transaction-amount">${tx.amount} fractions</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            ${isBuyer ? 'Purchased from' : 'Sold to'}: ${isBuyer ? tx.seller.substr(0,6) + '...' + tx.seller.substr(-4) : tx.buyer.substr(0,6) + '...' + tx.buyer.substr(-4)}<br>
+                            Total: ${web3.utils.fromWei(tx.price, 'ether')} ETH
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+                    
+                case 'transfer':
+                    const isReceiver = tx.to.toLowerCase() === userAddress;
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type transfer">Fraction Transfer</span>
+                            <span class="transaction-amount">${tx.amount} fractions</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            ${isReceiver ? 'Received from' : 'Sent to'}: ${isReceiver ? tx.from.substr(0,6) + '...' + tx.from.substr(-4) : tx.to.substr(0,6) + '...' + tx.to.substr(-4)}
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+                    
+                case 'income':
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type income">Income Deposit</span>
+                            <span class="transaction-amount">${web3.utils.fromWei(tx.amount, 'ether')} ETH</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            Income deposited by property owner
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+                    
+                case 'claim':
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type claim">Dividend Claim</span>
+                            <span class="transaction-amount">${web3.utils.fromWei(tx.amount, 'ether')} ETH</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            Dividend claimed successfully
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+                    
+                case 'create':
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type create">Property Created</span>
+                            <span class="transaction-amount">${tx.totalSupply} fractions</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            Property fractionized with ${web3.utils.fromWei(tx.valuation, 'ether')} ETH valuation
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+                    
+                case 'transaction':
+                    content = `
+                        <div class="transaction-header">
+                            <span class="transaction-type transaction">Contract Transaction</span>
+                            <span class="transaction-amount">${web3.utils.fromWei(tx.value || '0', 'ether')} ETH</span>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${tx.property}</strong><br>
+                            Transaction from: ${tx.from.substr(0,6) + '...' + tx.from.substr(-4)}<br>
+                            To contract: ${tx.to.substr(0,6) + '...' + tx.to.substr(-4)}
+                        </div>
+                        <div class="transaction-date">Block: ${tx.blockNumber} | TX: ${tx.txHash.substr(0,8)}...</div>
+                    `;
+                    break;
+            }
+            
+            return content;
+        }
+
+     function filterTransactions() {
+    const filter = document.getElementById('historyFilter').value;
+    let filteredTransactions = allTransactions;
+    
+    console.log('Filtering by:', filter);
+    console.log('All transactions:', allTransactions);
+    
+    if (filter !== 'all') {
+        switch(filter) {
+            case 'purchase':
+                // Fraction purchases - contract transactions with ETH value > 0
+                filteredTransactions = allTransactions.filter(tx => {
+                    if (tx.type === 'purchase') return true;
+                    if (tx.type === 'transaction' && tx.value) {
+                        const ethValue = parseFloat(web3.utils.fromWei(tx.value, 'ether'));
+                        return ethValue > 0;
+                    }
+                    return false;
+                });
+                break;
+                
+            case 'transfer':
+                filteredTransactions = allTransactions.filter(tx => tx.type === 'transfer');
+                break;
+                
+            case 'income':
+                filteredTransactions = allTransactions.filter(tx => tx.type === 'income');
+                break;
+                
+            case 'claim':
+                filteredTransactions = allTransactions.filter(tx => tx.type === 'claim');
+                break;
+                
+            case 'create':
+                // Property creation transactions
+                filteredTransactions = allTransactions.filter(tx => {
+                    console.log('Checking transaction for create:', tx);
+                    return tx.type === 'create';
+                });
+                break;
+                
+            case 'transaction':
+                // Contract transactions with 0 ETH
+                filteredTransactions = allTransactions.filter(tx => {
+                    if (tx.type === 'transaction' && tx.value) {
+                        const ethValue = parseFloat(web3.utils.fromWei(tx.value, 'ether'));
+                        return ethValue === 0;
+                    }
+                    return tx.type === 'transaction' && (!tx.value || tx.value === '0');
+                });
+                break;
+                
+            default:
+                filteredTransactions = allTransactions.filter(tx => tx.type === filter);
+        }
+    }
+    
+    console.log('Filtered transactions:', filteredTransactions);
+    displayTransactions(filteredTransactions);
+}
+    
+
+       function updateTransactionStats() {
+    const totalTx = allTransactions.length;
+    const userTx = allTransactions.filter(tx => {
+        const userAddr = account.toLowerCase();
+        switch (tx.type) {
+            case 'purchase':
+                return tx.buyer.toLowerCase() === userAddr || tx.seller.toLowerCase() === userAddr;
+            case 'transfer':
+                return tx.from.toLowerCase() === userAddr || tx.to.toLowerCase() === userAddr;
+            case 'claim':
+                return tx.investor.toLowerCase() === userAddr;
+            case 'create':
+                return tx.owner.toLowerCase() === userAddr;
+            case 'transaction':
+                return tx.from.toLowerCase() === userAddr;
+            default:
+                return false;
+        }
+    }).length;
+    
+    // Calculate total volume from all transaction types
+    let totalVolume = 0;
+    
+    allTransactions.forEach(tx => {
+        try {
+            if (tx.price) {
+                // Purchase transactions have price
+                totalVolume += parseFloat(web3.utils.fromWei(tx.price, 'ether'));
+            } else if (tx.value && tx.value !== '0') {
+                // Contract transactions have value
+                totalVolume += parseFloat(web3.utils.fromWei(tx.value, 'ether'));
+            } else if (tx.amount && (tx.type === 'income' || tx.type === 'claim')) {
+                // Income deposits and claims have amount
+                totalVolume += parseFloat(web3.utils.fromWei(tx.amount, 'ether'));
+            }
+        } catch (error) {
+            console.log('Error calculating volume for transaction:', tx);
+        }
+    });
+    
+    document.getElementById('totalTransactions').textContent = totalTx;
+    document.getElementById('userTransactions').textContent = userTx;
+    document.getElementById('totalVolume').textContent = totalVolume.toFixed(4);
+}
+	
+	async function disconnectWallet() {
+            account = null;
+            document.getElementById('walletInfo').classList.add('hidden');
+            document.getElementById('connectWallet').textContent = 'Connect Wallet';
+            document.getElementById('connectWallet').classList.remove('hidden');
+            document.getElementById('connectWallet').classList.add('btn-primary');
+            document.getElementById('disconnectWallet').classList.add('hidden');
+            showStatus('Wallet disconnected', 'info');
+        }
+
+        // Make functions globally available
+        window.switchTab = switchTab;
+        window.createProperty = createProperty;
+        window.loadProperties = loadProperties;
+        window.buyFractions = buyFractions;
+        window.transferFractions = transferFractions;
+        window.claimIncome = claimIncome;
+        window.depositIncome = depositIncome;
+        window.setKYC = setKYC;
+        window.selfVerifyKYC = selfVerifyKYC;
+        window.loadTransactionHistory = loadTransactionHistory;
+        window.filterTransactions = filterTransactions;
+        window.checkMyKYC = checkMyKYC;
+        window.switchToGanache = switchToGanache;
+        window.showImageGallery = showImageGallery;
+	window.disconnectWallet = disconnectWallet;
+	window.checkAvailableFractions = checkAvailableFractions;
+
+        // Portfolio property selection handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const portfolioSelect = document.getElementById('portfolioProperty');
+            if (portfolioSelect) {
+                portfolioSelect.addEventListener('change', updateClaimableAmount);
+            }
+        });
+
+        // Initialize the app when page loads
+        window.addEventListener('load', initializeApp);
+
+        // Handle account changes
+        if (typeof window.ethereum !== 'undefined') {
+           window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    account = null;
+                    document.getElementById('walletInfo').classList.add('hidden');
+                    document.getElementById('connectWallet').classList.remove('hidden');
+                    document.getElementById('connectWallet').classList.add('btn-primary');
+                    document.getElementById('disconnectWallet').classList.add('hidden');
+                } else {
+                    account = accounts[0];
+                    updateWalletInfo();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
