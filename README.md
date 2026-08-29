@@ -34,6 +34,8 @@ DApp/
 │   └── PropertyToken.json
 └── index.html               # Frontend DApp
 
+## How It Works
+
 1. **Owner** creates a new property via the Factory (sets name, symbol, valuation, total supply, price per fraction, IPFS hash).
 2. Full token supply is minted to the owner.
 3. **Investors** buy fractions from the owner (primary market) or from other holders who listed tokens (secondary market).
