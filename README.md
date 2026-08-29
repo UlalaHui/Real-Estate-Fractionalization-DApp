@@ -33,7 +33,6 @@ DApp/
 │   ├── PropertyFactory.json
 │   └── PropertyToken.json
 └── index.html               # Frontend DApp
-text## How It Works
 
 1. **Owner** creates a new property via the Factory (sets name, symbol, valuation, total supply, price per fraction, IPFS hash).
 2. Full token supply is minted to the owner.
